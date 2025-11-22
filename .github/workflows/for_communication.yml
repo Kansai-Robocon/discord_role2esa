@@ -1,0 +1,39 @@
+name: Update esa Organization List
+
+on:
+  schedule:
+    # 毎日 日本時間 朝9時 (UTC 0:00) に実行
+    - cron: '0 10 * * *'
+  workflow_dispatch: # 手動実行ボタンを有効化
+
+jobs:
+  update-esa:
+    runs-on: ubuntu-latest
+    # タイムゾーンをJSTに設定
+    env:
+      TZ: 'Asia/Tokyo'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          # requirements.txt があればそれを使い、なければ直接インストール
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; else pip install requests python-dotenv; fi
+
+      - name: Run script
+        env:
+          # Pythonコードが os.environ.get で読み込む名前 = GitHub Secrets の値
+          DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
+          DISCORD_GUILD_ID2: ${{ secrets.DISCORD_GUILD_ID2 }}
+          ESA_ACCESS_TOKEN: ${{ secrets.ESA_ACCESS_TOKEN }}
+          ESA_TEAM_NAME: ${{ secrets.ESA_TEAM_NAME }}
+          ESA_POST_ID2: ${{ secrets.ESA_POST_ID2 }}
+        run: python for_communication.py
