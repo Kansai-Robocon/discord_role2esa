@@ -219,8 +219,8 @@ def update_esa_section(new_content):
     current_body = post_data['body_md']
     current_wip = post_data.get('wip', False)
 
-    start_marker = ""
-    end_marker = ""
+    start_marker = "<!--START_LIST-->"
+    end_marker = "<!--END_LIST-->"
 
     jst = timezone(timedelta(hours=9))
     now_str = datetime.now(jst).strftime('%Y/%m/%d %H:%M')
