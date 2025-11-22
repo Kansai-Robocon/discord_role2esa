@@ -98,21 +98,20 @@ def format_member_name(member, role_name, officer_role_id, truncate=False):
     raw_name = member.get('nick') or user.get(
         'global_name') or user['username']
 
-    # 1. 先に星が付く対象かを判定する (カット基準を変えるため)
+    # 1. 先に星が付く対象かを判定
     star_list = MANUAL_STAR_MAPPING.get(role_name, [])
     found_star = False
-    # 完全一致、または前方一致（設定名が長いケースは稀なので raw_name in star_list で判定）
     if raw_name in star_list:
         found_star = True
 
-    # 2. カット処理 (truncate=True の場合のみ)
+    # 2. カット処理
     if truncate:
         if found_star:
-            # 星あり: 全角12文字(幅24)以上なら -> 全角11文字(幅22)にカット
+            # 星あり: 全角11文字(幅22)以上 -> 全角10文字(幅20)
             limit_width = 22
             target_width = 20
         else:
-            # 星なし: 全角13文字(幅26)以上なら -> 全角12文字(幅24)にカット
+            # 星なし: 全角13文字(幅26)以上 -> 全角12文字(幅24)
             limit_width = 26
             target_width = 24
 
@@ -164,7 +163,6 @@ def generate_mermaid_hierarchy(roles, members):
 
         display_lines = []
         for m in officer_members:
-            # 役つきは truncate=False
             formatted_name, _ = format_member_name(
                 m, OFFICER_ROLE_NAME, officer_role_id, truncate=False)
             display_lines.append(formatted_name)
@@ -198,7 +196,6 @@ def generate_mermaid_hierarchy(roles, members):
 
         display_lines = []
         for m in role_members:
-            # 実務ロールは truncate=True
             formatted_name, _ = format_member_name(
                 m, role_name, officer_role_id, truncate=True)
             display_lines.append(formatted_name)
@@ -254,6 +251,7 @@ def update_esa_section(new_chart_content):
 
     url = f"https://api.esa.io/v1/teams/{ESA_TEAM_NAME}/posts/{ESA_POST_ID}"
 
+    # 1. 現在の記事を取得
     res = requests.get(url, headers=HEADERS_ESA)
     if res.status_code != 200:
         print(f"Error getting post: {res.status_code} {res.text}")
@@ -261,6 +259,9 @@ def update_esa_section(new_chart_content):
 
     post_data = res.json()
     current_body = post_data['body_md']
+
+    # 【修正】 現在のWIP状態を取得（勝手に公開/非公開が変わらないようにする）
+    current_wip = post_data.get('wip', False)
 
     start_marker = "<!--START_DIAGRAM-->"
     end_marker = "<!--END_DIAGRAM-->"
@@ -281,13 +282,14 @@ def update_esa_section(new_chart_content):
         "post": {
             "body_md": new_body,
             "message": "Update Organization Chart via Script",
-            "skip_notice": True
+            "wip": current_wip,   # 【修正】 現在の状態を維持
+            "skip_notice": True   # 通知をスキップ
         }
     }
 
     patch_res = requests.patch(url, headers=HEADERS_ESA, json=payload)
     if patch_res.status_code == 200:
-        print("esa updated successfully!")
+        print("esa updated successfully! (Notification should be skipped)")
     else:
         print(f"Error updating post: {patch_res.status_code} {patch_res.text}")
         print("\n--- [Debug] Generated Mermaid Text ---")
