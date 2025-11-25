@@ -281,7 +281,6 @@ def update_esa_section(new_chart_content):
     payload = {
         "post": {
             "body_md": new_body,
-            "message": "Update Organization Chart via Script",
             "wip": current_wip,   # 【修正】 現在の状態を維持
             "skip_notice": True   # 通知をスキップ
         }

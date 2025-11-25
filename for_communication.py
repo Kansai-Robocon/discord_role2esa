@@ -7,8 +7,9 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# --- 設定値 (前回のご要望通り ID2 を参照) ---
+# --- 設定値 ---
 DISCORD_TOKEN = os.environ.get("DISCORD_TOKEN")
+# ID2を参照するように設定
 DISCORD_GUILD_ID = os.environ.get("DISCORD_GUILD_ID2")
 
 # esa設定
@@ -114,10 +115,6 @@ def analyze_name_error(member):
 
     # 最初の_で分割して、後半部分を見る（2つ以上あってもOK）
     parts = raw_name.split("_", 1)
-
-    # parts[0] = 名前 (ローマ字チェックは無視してOK)
-    # parts[1] = 役割(所属校)
-
     after_underscore = parts[1]
 
     # 2. 後半に所属校の括弧があるか
@@ -217,9 +214,11 @@ def update_esa_section(new_content):
     post_data = res.json()
     current_body = post_data['body_md']
     current_wip = post_data.get('wip', False)
+    # 現在のリビジョン番号を取得（重要）
+    current_revision = post_data.get('revision_number')
 
-    start_marker = "<!--START_LIST-->"
-    end_marker = "<!--END_LIST-->"
+    start_marker = ""
+    end_marker = ""
 
     jst = timezone(timedelta(hours=9))
     now_str = datetime.now(jst).strftime('%Y/%m/%d %H:%M')
@@ -230,21 +229,26 @@ def update_esa_section(new_content):
     new_body = re.sub(pattern, replacement, current_body, flags=re.DOTALL)
 
     if new_body == current_body:
-        print("Warning: Markers not found in the esa post.")
+        print("Info: No content change detected. Skipping update.")
         return
 
+    # --- 修正ポイント ---
+    # 1. message (更新メッセージ) を削除しました。
+    #    メッセージがあると明示的な更新とみなされ、通知が飛びやすくなります。
+    # 2. original_revision を追加しました。
+    #    これにより安全な更新となり、無駄な通知トリガーを防ぐ効果が期待できます。
     payload = {
         "post": {
             "body_md": new_body,
-            "message": "Update Organization List via Script",
             "wip": current_wip,
-            "skip_notice": True
+            "skip_notice": True,
+            "original_revision": current_revision
         }
     }
 
     patch_res = requests.patch(url, headers=HEADERS_ESA, json=payload)
     if patch_res.status_code == 200:
-        print("esa updated successfully! (Notification Skipped)")
+        print("esa updated successfully! (Silent Update)")
     else:
         print(f"Error updating post: {patch_res.status_code} {patch_res.text}")
 
