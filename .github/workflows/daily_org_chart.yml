@@ -1,9 +1,9 @@
-name: Daily Org Chart Update
+name: Kansai Harurobo Org Chart Update
 
 on:
   schedule:
     # 毎日 日本時間 朝9時 (UTC 0:00) に実行
-    - cron: '0 0 * * *'
+    - cron: '0 0 */7 * *'
   workflow_dispatch: # 手動実行ボタンも有効化
 
 jobs:

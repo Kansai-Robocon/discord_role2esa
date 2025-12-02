@@ -1,9 +1,9 @@
-name: Update esa Organization List
+name: Update esa Communication Server
 
 on:
   schedule:
     # 毎日 日本時間 朝9時 (UTC 0:00) に実行
-    - cron: '0 10 * * *'
+    - cron: '0 0 */3 * *'
   workflow_dispatch: # 手動実行ボタンを有効化
 
 jobs:
