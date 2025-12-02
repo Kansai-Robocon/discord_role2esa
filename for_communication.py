@@ -126,11 +126,12 @@ def analyze_name_error(member):
 
 def generate_markdown_list_all(roles, members):
     lines = []
+    lines.append("# 組織図・ユーザ管理")
 
     # ==========================================
     # 1. ロール別 ユーザ一覧
     # ==========================================
-    lines.append("\n### ロール別 ユーザ一覧")
+    lines.append("\n## ロール別 ユーザ一覧")
 
     for role in roles:
         if role['name'] == '@everyone':
@@ -172,7 +173,7 @@ def generate_markdown_list_all(roles, members):
     # ==========================================
     # 2. 命名規則に従っていない人 (理由別)
     # ==========================================
-    lines.append("\n### 命名規則に従っていない人")
+    lines.append("\n## 命名規則に従っていない人")
     lines.append("> 規則: `苗字..._役割...(所属校)`")
     lines.append("> (ローマ字や_の個数は不問)")
 
